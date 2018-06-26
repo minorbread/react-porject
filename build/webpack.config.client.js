@@ -1,15 +1,19 @@
 const path = require('path');
 const HTMLPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
 
-module.exports = {
+const isDev = process.env.NODE_ENV === 'development';
+
+const config = {
   entry: {
     app: path.join(__dirname, '../client/app.js')
   },
   output: {
     filename: '[name].[hash].js',
     path: path.join(__dirname, '../dist'),
-    publicPath: '/public'
+    publicPath: '/public/'
   },
+  mode: isDev ? 'development' : 'production',
   module: {
     rules: [
       {
@@ -29,3 +33,27 @@ module.exports = {
     })
   ]
 };
+
+if (isDev) {
+  config.entry = {
+    app: ['react-hot-loader/patch', path.join(__dirname, '../client/app.js')]
+  };
+  // 要把dist文件夹删了
+  config.devServer = {
+    host: '0.0.0.0',
+    port: '8888',
+    contentBase: path.join(__dirname, '../dist'),
+    hot: true,
+    overlay: {
+      // 错误显示在页面上
+      errors: true
+    },
+    publicPath: '/public/',
+    historyApiFallback: {
+      index: '/public/index.html'
+    }
+  };
+  config.plugins.push(new webpack.HotModuleReplacementPlugin());
+}
+
+module.exports = config;
