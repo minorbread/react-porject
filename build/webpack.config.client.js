@@ -1,52 +1,31 @@
-const path = require('path');
-const HTMLPlugin = require('html-webpack-plugin');
-const webpack = require('webpack');
+const path = require('path')
+const HTMLPlugin = require('html-webpack-plugin')
+const webpackMerge = require('webpack-merge')
+const webpack = require('webpack')
+const baseConfig = require('./webpack.base')
 
-const isDev = process.env.NODE_ENV === 'development';
 
-const config = {
-  resolve: {
-    extensions: ['.js','.jsx']
-  },
+const isDev = process.env.NODE_ENV === 'development'
+
+const config = webpackMerge(baseConfig, {
   entry: {
     app: path.join(__dirname, '../client/app.js')
   },
   output: {
     filename: '[name].[hash].js',
-    path: path.join(__dirname, '../dist'),
-    publicPath: '/public/'
   },
   mode: isDev ? 'development' : 'production',
-  module: {
-    rules: [
-      {
-        test: /.jsx$/,
-        loader: 'babel-loader'
-      },
-      {
-        test: /.js$/,
-        loader: 'babel-loader',
-        exclude: [path.join(__dirname, '../node_modules')]
-      },
-      {
-        enforce: "pre", // 编译器执行
-        test: /.(js|jsx)$/,
-        loader: "eslint-loader",
-        exclude: [path.resolve(__dirname, "../node_modules")]
-      }
-    ]
-  },
   plugins: [
     new HTMLPlugin({
       template: path.join(__dirname, '../client/template.html')
     })
   ]
-};
+})
 
 if (isDev) {
   config.entry = {
     app: ['react-hot-loader/patch', path.join(__dirname, '../client/app.js')]
-  };
+  }
   // 要把dist文件夹删了
   config.devServer = {
     host: '0.0.0.0',
@@ -61,8 +40,8 @@ if (isDev) {
     historyApiFallback: {
       index: '/public/index.html'
     }
-  };
-  config.plugins.push(new webpack.HotModuleReplacementPlugin());
+  }
+  config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
 
-module.exports = config;
+module.exports = config

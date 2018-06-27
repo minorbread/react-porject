@@ -1,14 +1,14 @@
-const axios = require('axios');
-const webpack = require('webpack');
-const MemoryFs = require('memory-fs');
-const ReactDomServer = require('react-dom/server');
-const path = require('path');
+const axios = require('axios')
+const webpack = require('webpack')
+const MemoryFs = require('memory-fs')
+const ReactDomServer = require('react-dom/server')
+const path = require('path')
 
-const serverConfig = require('../../build/webpack.config.server');
+const serverConfig = require('../../build/webpack.config.server')
 
 const proxy = require('http-proxy-middleware')
 
-let serverBundle;
+let serverBundle
 
 // console.log('----------------------', ReactDomServer)
 const getTemplate = () => {
@@ -16,41 +16,41 @@ const getTemplate = () => {
     axios
       .get('http://localhost:8888/public/index.html')
       .then(res => {
-        resolve(res.data);
+        resolve(res.data)
       })
-      .catch(reject);
-  });
-};
+      .catch(reject)
+  })
+}
 
 
-const Module = module.constructor;
+const Module = module.constructor
 
-const mfs = new MemoryFs();
+const mfs = new MemoryFs()
 
-const serverCompiler = webpack(serverConfig);
+const serverCompiler = webpack(serverConfig)
 
-serverCompiler.outputFileSystem = mfs;
+serverCompiler.outputFileSystem = mfs
 
 
 
 serverCompiler.watch({}, (err, stats) => {
-  if (err) throw err;
-  stats = stats.toJson();
+  if (err) throw err
+  stats = stats.toJson()
   stats.errors.forEach(err => {
-    console.log(err);
-  });
+    console.log(err)
+  })
   stats.warnings.forEach(warn => {
-    console.log(warn);
-  });
+    console.log(warn)
+  })
   const bundlePath = path.join(
     serverConfig.output.path,
     serverConfig.output.filename
-  );
-  const bundle = mfs.readFileSync(bundlePath, 'utf-8');
-  const m = new Module();
-  m._compile(bundle, 'server-entry.js');
-  serverBundle = m.exports.default;
-});
+  )
+  const bundle = mfs.readFileSync(bundlePath, 'utf-8')
+  const m = new Module()
+  m._compile(bundle, 'server-entry.js')
+  serverBundle = m.exports.default
+})
 
 module.exports = function(app) {
 
@@ -65,4 +65,4 @@ module.exports = function(app) {
     })
   })
 
-};
+}
