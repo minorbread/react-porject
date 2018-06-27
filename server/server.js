@@ -1,5 +1,5 @@
 const express = require('express')
-const ReactSSR = require('react-dom/server')
+const ReactDomServer = require('react-dom/server')
 const favicon = require('serve-favicon')
 const fs = require('fs')
 const path = require('path')
@@ -17,7 +17,7 @@ if (!isDev) {
 
   app.use('/public', express.static(path.join(__dirname, '../dist')))
   app.get('*', (req, res) => {
-    const appString = ReactSSR.renderToString(serverEntry)
+    const appString = ReactDomServer.renderToString(serverEntry)
     res.send(template.replace('<!-- app -->', appString))
   })
 } else {

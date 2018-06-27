@@ -16,6 +16,7 @@ const getTemplate = () => {
     axios
       .get('http://localhost:8888/public/index.html')
       .then(res => {
+        console.log('res.data---------------------------', res.data)
         resolve(res.data)
       })
       .catch(reject)
@@ -59,9 +60,11 @@ module.exports = function(app) {
   }))
 
   app.get('*', function (req, res) {
-    getTemplate().then(templace => {
+    getTemplate().then(template => {
       const content = ReactDomServer.renderToString(serverBundle)
-      res.send(templace.replace('<!-- app -->', content))
+      // console.log('content', serverBundle)
+      // console.log('content', template)
+      res.send(template.replace('<!-- app -->', content))
     })
   })
 

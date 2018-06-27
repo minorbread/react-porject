@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { AppContainer } from 'react-hot-loader'  // eslint-disable-line
-
+import { BrowserRouter } from 'react-router-dom'
 import App from './views/App'
 
 // ReactDOM.render(<App />, document.getElementById('root'))
@@ -20,7 +20,9 @@ const rootEle = document.getElementById('root')
 const render = (Component) => {
   ReactDOM.hydrate(
     <AppContainer>
-      <Component />
+      <BrowserRouter>
+        <Component />
+      </BrowserRouter>
     </AppContainer>,
     rootEle,
   )
