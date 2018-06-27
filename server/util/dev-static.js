@@ -7,16 +7,18 @@ const path = require('path')
 const serverConfig = require('../../build/webpack.config.server')
 
 const proxy = require('http-proxy-middleware')
+const serialize = require('serialize-javascript')
+const ejs = require('ejs')
+const reactAsyncbootstrapper = require('react-async-bootstrapper')
 
-let serverBundle
+let serverBundle, createStoreMap
 
 // console.log('----------------------', ReactDomServer)
 const getTemplate = () => {
   return new Promise((resolve, reject) => {
     axios
-      .get('http://localhost:8888/public/index.html')
+      .get('http://localhost:8888/public/server.ejs')
       .then(res => {
-        console.log('res.data---------------------------', res.data)
         resolve(res.data)
       })
       .catch(reject)
@@ -32,7 +34,12 @@ const serverCompiler = webpack(serverConfig)
 
 serverCompiler.outputFileSystem = mfs
 
-
+const getStoreState = (stores) => {
+  return Object.keys(stores).reduce((result, storeName) => {
+    result[storeName] = stores[storeName].toJson()
+    return result
+  }, {})
+}
 
 serverCompiler.watch({}, (err, stats) => {
   if (err) throw err
@@ -51,6 +58,7 @@ serverCompiler.watch({}, (err, stats) => {
   const m = new Module()
   m._compile(bundle, 'server-entry.js')
   serverBundle = m.exports.default
+  createStoreMap = m.exports.createStoreMap
 })
 
 module.exports = function(app) {
@@ -61,11 +69,29 @@ module.exports = function(app) {
 
   app.get('*', function (req, res) {
     getTemplate().then(template => {
-      const content = ReactDomServer.renderToString(serverBundle)
+      // const content = ReactDomServer.renderToString(serverBundle)
       // console.log('content', serverBundle)
       // console.log('content', template)
-      res.send(template.replace('<!-- app -->', content))
+      // res.send(template.replace('<!-- app -->', content))
+      const routerContext = {}
+      const stores = createStoreMap()
+      const app = serverBundle(stores, routerContext, req.url)
+      reactAsyncbootstrapper(app).then(() => {
+        if (routerContext.url) {
+          res.status(302).setHeader('Location', routerContext.url)
+          res.end()
+          return
+        }
+        const state = getStoreState(stores)
+        const content = ReactDomServer.renderToString(app)
+
+        const html = ejs.render(template, {
+          appString: content,
+          initialState: serialize(state),
+        })
+        res.send(html)
+        // res.send(template.replace('<!-- app -->', content))
+      })
     })
   })
-
 }
