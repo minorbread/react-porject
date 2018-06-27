@@ -5,6 +5,9 @@ const webpack = require('webpack');
 const isDev = process.env.NODE_ENV === 'development';
 
 const config = {
+  resolve: {
+    extensions: ['.js','.jsx']
+  },
   entry: {
     app: path.join(__dirname, '../client/app.js')
   },
@@ -24,6 +27,12 @@ const config = {
         test: /.js$/,
         loader: 'babel-loader',
         exclude: [path.join(__dirname, '../node_modules')]
+      },
+      {
+        enforce: "pre", // 编译器执行
+        test: /.(js|jsx)$/,
+        loader: "eslint-loader",
+        exclude: [path.resolve(__dirname, "../node_modules")]
       }
     ]
   },
