@@ -7,8 +7,8 @@
     "build:client": "webpack --config build/webpack.config.client.js",
     "build:server": "webpack --config build/webpack.config.server.js",
     "build": "rimraf dist/ && npm run build:client && npm run build:server",
-    "server": "nodemon server/server.js",
-    "dev:client": "cross-env NODE_ENV=development webpack-dev-server --config build/webpack.config.client.js"
+    "dev:client": "cross-env NODE_ENV=development webpack-dev-server --config build/webpack.config.client.js",
+    "dev:server": "cross-env NODE_ENV=development nodemon server/server.js"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,8 @@
     "babel-preset-react": "^6.24.1",
     "cross-env": "^5.2.0",
     "html-webpack-plugin": "^3.2.0",
+    "http-proxy-middleware": "^0.18.0",
+    "memory-fs": "^0.4.1",
     "nodemon": "^1.17.5",
     "react-hot-loader": "^4.3.3",
     "rimraf": "^2.6.2",
@@ -36,6 +38,7 @@
     "webpack-dev-server": "^3.1.4"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "express": "^4.16.3",
     "react": "^16.4.1",
     "react-dom": "^16.4.1"
