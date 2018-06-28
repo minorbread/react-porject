@@ -3,6 +3,7 @@ const webpack = require('webpack')
 const MemoryFs = require('memory-fs')
 const ReactDomServer = require('react-dom/server')
 const path = require('path')
+const Helmet = require('react-helmet').default
 
 const serverConfig = require('../../build/webpack.config.server')
 
@@ -10,7 +11,6 @@ const proxy = require('http-proxy-middleware')
 const serialize = require('serialize-javascript')
 const ejs = require('ejs')
 const reactAsyncbootstrapper = require('react-async-bootstrapper')
-
 let serverBundle, createStoreMap
 
 // console.log('----------------------', ReactDomServer)
@@ -26,8 +26,21 @@ const getTemplate = () => {
 }
 
 
-const Module = module.constructor
+const NativeModule = require('module')
+const vm = require('vm')
 
+// core
+const getModuleFromString = (bundle, filename) => {
+  const m = { exports: {} }
+  const wrapper = NativeModule.wrap(bundle)
+  const script = new vm.Script(wrapper, {
+    filename: filename,
+    displayErrors: true,
+  })
+  const result = script.runInThisContext()
+  result.call(m.exports, m.exports, require, m)
+  return m
+}
 const mfs = new MemoryFs()
 
 const serverCompiler = webpack(serverConfig)
@@ -55,8 +68,7 @@ serverCompiler.watch({}, (err, stats) => {
     serverConfig.output.filename
   )
   const bundle = mfs.readFileSync(bundlePath, 'utf-8')
-  const m = new Module()
-  m._compile(bundle, 'server-entry.js')
+  const m = getModuleFromString(bundle, 'server-entry.js')
   serverBundle = m.exports.default
   createStoreMap = m.exports.createStoreMap
 })
@@ -82,12 +94,17 @@ module.exports = function(app) {
           res.end()
           return
         }
+        const helmet = Helmet.rewind()
         const state = getStoreState(stores)
         const content = ReactDomServer.renderToString(app)
 
         const html = ejs.render(template, {
           appString: content,
           initialState: serialize(state),
+          meta: helmet.meta.toString(),
+          title: helmet.title.toString(),
+          style: helmet.style.toString(),
+          link: helmet.link.toString(),
         })
         res.send(html)
         // res.send(template.replace('<!-- app -->', content))
